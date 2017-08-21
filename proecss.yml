@@ -1,0 +1,8 @@
+apps:
+  - script         : index.js
+    instances      : 1
+    exec_mode      : fork
+    max_restarts   : 150
+    log_date_format: "YYY-MM-DD HH:mZ"
+    error_file     : "/var/www/wsc/pm2logs/error.log"
+    out_file       : "/var/www/wsc/pm2logs/out.log"
