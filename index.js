@@ -11,10 +11,10 @@ const os           = require('os');
 const mysql        = require('mysql');
 
 var connection = mysql.createConnection({
-    host     : 'rm-bp18525c38y858eyd.mysql.rds.aliyuncs.com',
-    user     : 'pubg',
-    password : 'LOYO_pubg',
-    database : 'pubg'
+    host     : 'localhost',
+    user     : 'p',
+    password : 'p',
+    database : 'p'
 });
 connection.connect();
 var sql = 'SELECT * FROM `key` WHERE `name` = "' + os.hostname() + '";';
