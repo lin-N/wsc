@@ -49,7 +49,7 @@ connection.query(sql, function (err, result) {
         if(1 == ws.readyState) {
              ws.send('[10000,null,"UserProxyApi","Ping"]');
         }
-    }, 15000);
+    }, 5000);
 
     server.listen(11008);
     server.on('request',(req, res)=>{
