@@ -11,9 +11,9 @@ const os           = require('os');
 const mysql        = require('mysql');
 
 var connection = mysql.createConnection({
-    host     : '1',
-    user     : '1',
-    password : '1',
+    host     : 'pubg-cluster.cluster-cs17ac96ihrv.us-west-2.rds.amazonaws.com',
+    user     : 'pubg',
+    password : 'LOYO_pubg',
     database : 'pubg'
 
 });
