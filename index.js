@@ -11,10 +11,10 @@ const os           = require('os');
 const mysql        = require('mysql');
 
 var connection = mysql.createConnection({
-    host     : 'h',
-    user     : 'u',
-    password : 'p',
-    database : 'p'
+    host     : 'rm-bp18525c38y858eyd.mysql.rds.aliyuncs.com',
+    user     : 'pubg',
+    password : 'LOYO_pubg',
+    database : 'pubg'
 
 });
 connection.connect();
@@ -28,17 +28,7 @@ connection.query(sql, function (err, result) {
     var ws  = new WebSocket(wsUrl);
 
     ws.on('open', function open() {
-        console.log('open:' + moment().format('YYYY-MM-DD HH:mm:ss'));
         global.res = null;
-    });
-
-    ws.on('message', function incoming(data) {
-        console.log(data);
-        if (global.res) {
-            global.res.writeHead(200, {'Content-Type':'text/html ; charset=utf-8'});
-            global.res.write(data);
-            global.res.end();
-        }
     });
     
     ws.on('close', function close() {
@@ -46,31 +36,69 @@ connection.query(sql, function (err, result) {
         process.exit();
     });
 
-    const interval = setInterval(function() {
-        if(1 == ws.readyState) {
-             ws.send('[10000,null,"UserProxyApi","Ping"]');
-        }
-    }, 5000);
-
     server.listen(11008);
     server.on('request',(req, res)=>{
         event.emit('request', req, res);
     });
+    
+    var action = {'steamId':'GetBroUserStatesBySteamId','accountId':'GetUserAllRecord','nickName':'GetBroUserStatesByNickname','board':'GetBroLeaderboard','accountIdPre5':'GetUserRecord'};
+    var hash = {};
+    var fuck = 10000;
 
-    var action = {'steamId':'GetBroUserStatesBySteamId','accountId':'GetUserAllRecord','nickName':'GetBroUserStatesByNickname'};
-
-    event.on('request', function(req, res) {
+    function sendSteamId(req, res) {
         console.log(req.url);
-        var urlQuery = url.parse(req.url).path.split('/');
-        if (undefined !== action[urlQuery[1]]) {
-            if ('steamId' == urlQuery[1]){
-                ws.send('[10000,null,"UserProxyApi","' + action[urlQuery[1]] + '",["' + urlQuery[2] + '"]]');
-            }
-            if ('accountId' == urlQuery[1]) {
-                ws.send('[10000,null,"UserProxyApi","' + action[urlQuery[1]] + '","' + urlQuery[2] + '"]');
+        if(fuck >= 89999) {
+            fuck = 10000;
+    }
+    var urlQuery = url.parse(req.url).path.split('/');
+    if ('ping' == urlQuery[1]){
+        ws.send('['+(fuck)+',null,"UserProxyApi","Ping"]');
+        res.writeHead(200, {'Content-Type':'text/html ; charset=utf-8'});
+        res.write(os.hostname());
+        res.end();
+        fuck += 1;
+        return
+    }
+    if (0 < urlQuery[2].indexOf(',')) {
+        urlQuery[2] = urlQuery[2].replace(/,/g, '","');
+    }
+    if (undefined !== action[urlQuery[1]]) {
+        if ('steamId' == urlQuery[1] || 'nickName' == urlQuery[1]) {
+            ws.send('['+(fuck)+',null,"UserProxyApi","' + action[urlQuery[1]] + '",["' + urlQuery[2] + '"]]');
+        } else if ('accountId' == urlQuery[1]) {
+            ws.send('['+(fuck)+',null,"UserProxyApi","' + action[urlQuery[1]] + '","' + urlQuery[2] + '"]');
+        } else if ('board' == urlQuery[1]) {
+            ws.send('['+(fuck)+',null,"UserProxyApi","' + action[urlQuery[1]] + '","' + urlQuery[2] + '","' + urlQuery[3] + '","' + urlQuery[4] + '","account.42b96cc277014180865bead6a661f170"]');
+        } else if ('accountIdPre5') {
+            ws.send('['+(fuck)+',null,"UserProxyApi","' + action[urlQuery[1]] + '","' + urlQuery[2] + '","' + urlQuery[3] + '","' + urlQuery[4] + '"]');
+        }
+        hash[fuck] = res;
+        fuck += 1;
+        }
+    }
+    
+    ws.on('message', function incoming(data) {
+        console.log('data:', data);
+        if(data) {
+            var mdata = JSON.parse(data);
+            if(-mdata[0] >= 10000) {
+                var mres = hash[-mdata[0]];
+                console.log(hash[-mdata[0]]);
+                mres.writeHead(200, {'Content-Type':'text/html ; charset=utf-8'});
+                mres.write(data);
+                mres.end();
             }
         }
-        global.res = res;
+    });
+    
+    event.on('request', function(req, res) {
+        try{
+            sendSteamId(req, res)
+        } catch (err) {
+            res.writeHead(200, {'Content-Type':'text/html; charset=utf-8'});
+            res.write(err.toString());
+            res.end();
+        }
     });
 });
 
